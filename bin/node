@@ -4,4 +4,4 @@ import intros.intros
 
 
 if __name__ == '__main__':
-    wheel_module.wheel_module.start()
+    intros.intros.start()
