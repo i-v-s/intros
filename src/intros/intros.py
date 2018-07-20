@@ -5,7 +5,7 @@ import time
 
 def start():
 
-	ms = boardDevices.magneticScaner()
+    ms = boardDevices.magneticScaner()
 
     rospy.init_node('intros')
 
@@ -19,8 +19,8 @@ def start():
 
     rate = rospy.Rate(4)
     while not rospy.is_shutdown():
-    	rate.sleep()
-    
-	rospy.rosinfo("Terminating...")
+        rate.sleep()
+
+    rospy.rosinfo("Terminating...")
     ms.stopScan()
     rospy.rosinfo("Ok")
