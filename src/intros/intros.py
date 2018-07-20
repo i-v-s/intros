@@ -21,6 +21,6 @@ def start():
     while not rospy.is_shutdown():
         rate.sleep()
 
-    rospy.rosinfo("Terminating...")
+    rospy.loginfo("Terminating...")
     ms.stopScan()
-    rospy.rosinfo("Ok")
+    rospy.loginfo("Ok")
