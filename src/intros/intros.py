@@ -5,22 +5,22 @@ import time
 
 def start():
 
-    ms = boardDevices.magneticScaner()
-
     rospy.init_node('intros')
 
-    cm_teak = "/teak;".encode()
-    time_start = time.time()
+    boardDevices.intros.init()
+    rospy.loginfo(boardDevices.intros.readData())
+    boardDevices.intros.initialize()
+    rospy.loginfo(boardDevices.intros.readData())
+    if boardDevices.intros.startScan() == 1:
+        rospy.loginfo("Scan started")
+        rospy.loginfo(boardDevices.intros.readData())
 
-    ms.initialize()
-    ms.startScan()
-
-    rospy.loginfo("Scan started")
-
-    rate = rospy.Rate(4)
-    while not rospy.is_shutdown():
-        rate.sleep()
-
-    rospy.loginfo("Terminating...")
-    ms.stopScan()
-    rospy.loginfo("Ok")
+        rate = rospy.Rate(4)
+        while not rospy.is_shutdown():
+            rate.sleep()
+        rospy.loginfo("Terminating...")
+        boardDevices.intros.stopScan()
+        rospy.loginfo("Scan stopped")
+        rospy.loginfo(boardDevices.intros.readData())
+    else:
+        rospy.loginfo("Unable to start scan")
