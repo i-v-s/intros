@@ -1,7 +1,110 @@
 #! /usr/bin/env python
 
-import intros.intros
+import rospy
+import time
+from serial.tools import list_ports
+from serial import Serial
+
+def open_port():
+    for port_info in list_ports.comports():
+        if port_info.name.startswith('ttyUSB'):
+            try:
+                port = Serial(port_info.device, 115200, timeout=1)
+                #port.open()
+                rospy.loginfo("Opened %s" % port_info.device)
+                return port
+            except Exception as e:
+                rospy.logwarn("Unable to open %s" % port_info.name, e)
+    return None
+
+
+def read(port):
+    data = ''
+    while True:
+        iw = port.in_waiting
+        if iw == 0:
+            return data
+        data += port.read(iw)
+        rospy.loginfo(data)
+
+
+def write_cr(port):
+    port.write(b'\r'.encode())
+    res = read(port)
+    return res.find('ok') >= 0
+
+
+def write_cr_ok(port):
+    attempts = 5
+    while not write_cr(port):
+        rospy.logerr('"ok" not received!')
+        time.sleep(1)
+        attempts -= 1
+        if attempts == 0:
+            return False
+    return True
+
+
+def write_keyboard(port, data):
+    for c in b'KEYBOARD\r'.encode():
+        port.write(c)
+        time.sleep(0.01)
+
+    port.write(data)
+    return write_cr(port)
+
+
+def write(port, string, delay = 0.01):
+    for c in string:
+        port.write(c)
+        time.sleep(delay)
+
+
+def reset_intros(port):
+    if not write_cr_ok(port):
+        return False
+    return write_keyboard(port, '77')
+
+
+def start_intros(port):
+    return write_keyboard(port, '79')
+
+
+def start_intros(port):
+    return write_keyboard(port, '79')
+
+
+def stop_intros(port):
+    if not write_cr_ok(port):
+        return False
+    return write_keyboard(port, '79')
+
+
+def main():
+    rospy.init_node('intros')
+    port = open_port()
+    if port is None:
+        rospy.logfatal("Unable to find intros port")
+        return
+    if not reset_intros(port):
+        rospy.logfatal("Unable to reset intros")
+        read(port)
+        return
+    if not start_intros(port):
+        rospy.logfatal("Unable to start intros")
+        read(port)
+        return
+    rospy.loginfo("Intros started")
+    rate = rospy.Rate(4)
+    while not rospy.is_shutdown():
+        read(port)
+        rate.sleep()
+    rospy.loginfo("Terminating...")
+    stop_intros(port)
+    time.sleep(1)
+    read(port)
+    rospy.loginfo("Scan stopped")
 
 
 if __name__ == '__main__':
-    intros.intros.start()
+    main()
