@@ -23,9 +23,9 @@ def read(port):
     while True:
         iw = port.in_waiting
         if iw == 0:
+            rospy.loginfo(data)
             return data
         data += port.read(iw)
-        rospy.loginfo(data)
 
 
 def write_cr(port):
@@ -49,8 +49,16 @@ def write_keyboard(port, data):
     for c in b'KEYBOARD\r'.encode():
         port.write(c)
         time.sleep(0.01)
+    for c in data:
+        port.write(c)
+        time.sleep(0.01)
+    return write_cr(port)
 
-    port.write(data)
+
+def write_list(port):
+    for c in b'LIST\r'.encode():
+        port.write(c)
+        time.sleep(0.01)
     return write_cr(port)
 
 
@@ -104,6 +112,9 @@ def main():
     time.sleep(1)
     read(port)
     rospy.loginfo("Scan stopped")
+    write_cr_ok(port)
+    write_list(port)
+    read(port)
 
 
 if __name__ == '__main__':
